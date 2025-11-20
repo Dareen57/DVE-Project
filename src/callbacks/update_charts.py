@@ -1,7 +1,9 @@
 from dash import Input, Output
 import plotly.express as px
 
+
 def register_update_callbacks(app, df):
+
 
     @app.callback(
         Output("main-chart", "figure"),
@@ -17,26 +19,34 @@ def register_update_callbacks(app, df):
     )
     def update_main_chart(n_clicks, borough, year, vehicle, factor, injury):
 
+
         filtered = df.copy()
+
 
         # Apply dropdown filters
         if borough:
             filtered = filtered[filtered["BOROUGH"] == borough]
 
+
         if year:
             filtered = filtered[filtered["CRASH_YEAR"] == year]
+
 
         if vehicle:
             filtered = filtered[filtered["VEHICLE_TYPE"].str.contains(vehicle, na=False)]
 
+
         if factor:
             filtered = filtered[filtered["CONTRIBUTING_FACTOR"].str.contains(factor, na=False)]
+
 
         if injury == "Injured":
             filtered = filtered[filtered["NUMBER OF PERSONS INJURED"] > 0]
 
+
         if injury == "Killed":
             filtered = filtered[filtered["NUMBER OF PERSONS KILLED"] > 0]
+
 
         # Create simple chart
         fig = px.histogram(
@@ -44,5 +54,6 @@ def register_update_callbacks(app, df):
             x="CRASH_YEAR",
             title="Crashes per Year (Filtered)"
         )
+
 
         return fig
