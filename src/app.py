@@ -17,8 +17,8 @@ app.layout = html.Div([
     # Filters
     generate_filter_dropdowns(df),
 
-    # Generate Report button
-    html.Button("Generate Report", id="generate-report-btn"),
+    # # Generate Report button
+    # html.Button("Generate Report", id="generate-report-btn"),
 
     # Main Chart
     dcc.Graph(id="main-chart"),
