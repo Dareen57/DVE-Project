@@ -1,4 +1,4 @@
-from dash import Input, Output
+from dash import Input, Output, State
 import plotly.express as px
 
 
@@ -7,13 +7,17 @@ def register_update_callbacks(app, df):
 
     @app.callback(
         Output("main-chart", "figure"),
-        Input("generate-report-btn", "n_clicks"),   # BUTTON triggers update
+
+        # ONLY the button is Input (trigger)
+        Input("generate-report-btn", "n_clicks"),
+
+        # Dropdowns are State (read-only, not triggers)
         [
-            Input("borough-dropdown", "value"),
-            Input("year-dropdown", "value"),
-            Input("vehicle-dropdown", "value"),
-            Input("factor-dropdown", "value"),
-            Input("injury-dropdown", "value"),
+            State("borough-dropdown", "value"),
+            State("year-dropdown", "value"),
+            State("vehicle-dropdown", "value"),
+            State("factor-dropdown", "value"),
+            State("injury-dropdown", "value"),
         ],
         prevent_initial_call=True
     )
