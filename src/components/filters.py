@@ -2,7 +2,6 @@ from dash import html, dcc
 
 def generate_filter_dropdowns(df):
     return html.Div([
-        
         # Borough filter
         html.Label("Borough"),
         dcc.Dropdown(
@@ -16,39 +15,50 @@ def generate_filter_dropdowns(df):
         html.Label("Year"),
         dcc.Dropdown(
             id="year-dropdown",
-            options=[{"label": int(y), "value": int(y)} for y in sorted(df["CRASH_YEAR"].dropna().unique())],
+            options=[{"label": int(y), "value": int(y)} for y in sorted(df["YEAR"].dropna().unique())],
             placeholder="Select Year",
             clearable=True
         ),
 
-        # Vehicle type filter
-        html.Label("Vehicle Type"),
+        # Month filter
+        html.Label("Month"),
         dcc.Dropdown(
-            id="vehicle-dropdown",
-            options=[{"label": v, "value": v} for v in sorted(df["VEHICLE_TYPE"].dropna().unique())],
-            placeholder="Select Vehicle Type",
+            id="month-dropdown",
+            options=[{"label": int(m), "value": int(m)} for m in sorted(df["MONTH"].dropna().unique())],
+            placeholder="Select Month",
             clearable=True
         ),
 
-        # Contributing factor filter
-        html.Label("Contributing Factor"),
+        # Weekday filter
+        html.Label("Weekday"),
         dcc.Dropdown(
-            id="factor-dropdown",
-            options=[{"label": f, "value": f} for f in sorted(df["CONTRIBUTING_FACTOR"].dropna().unique())],
-            placeholder="Select Factor",
+            id="weekday-dropdown",
+            options=[{"label": w, "value": w} for w in sorted(df["WEEKDAY"].dropna().unique())],
+            placeholder="Select Weekday",
             clearable=True
         ),
 
-        # Injury type filter
-        html.Label("Injury Type"),
+        # Hour filter
+        html.Label("Hour"),
         dcc.Dropdown(
-            id="injury-dropdown",
+            id="hour-dropdown",
+            options=[{"label": h, "value": h} for h in sorted(df["HOUR"].dropna().unique())],
+            placeholder="Select Hour",
+            clearable=True
+        ),
+
+        # Column selector for injury/fatality
+        html.Label("Metric"),
+        dcc.Dropdown(
+            id="metric-dropdown",
             options=[
-                {"label": "Injured", "value": "Injured"},
-                {"label": "Killed", "value": "Killed"},
+                {"label": "Persons Killed", "value": "NUMBER_OF_PERSONS_KILLED"},
+                {"label": "Pedestrians Injured", "value": "NUMBER_OF_PEDESTRIANS_INJURED"},
+                {"label": "Cyclists Killed", "value": "NUMBER_OF_CYCLIST_KILLED"},
+                {"label": "Motorists Killed", "value": "NUMBER_OF_MOTORIST_KILLED"}
             ],
-            placeholder="Select Injury Type",
-            clearable=True
+            placeholder="Select Metric",
+            clearable=False
         ),
 
         # Generate Report Button
