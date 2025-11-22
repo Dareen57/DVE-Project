@@ -2,7 +2,7 @@ import pandas as pd
 
 def load_cleaned_data(file_path: str) -> pd.DataFrame:
 
-    df = pd.read_csv(file_path, low_memory=False)
+    df = pd.read_parquet("data/NYC_crashes_persons_cleaned.parquet")
 
     # Fill missing boroughs
     # df["BOROUGH"] = df["BOROUGH"].fillna("Unknown").str.title().str.strip()
