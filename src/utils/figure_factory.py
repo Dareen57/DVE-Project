@@ -42,6 +42,49 @@ def create_hourly_borough_trend(df):
     fig.update_xaxes(dtick=4) # Show every 4th hour to save space
     return fig
 
+# ---------------------------------------------------------------------
+# CHART 2: Monthly Fatalities Trend
+# ---------------------------------------------------------------------
+def create_monthly_fatality_trend(df):
+    if df.empty: return _create_empty_figure("Fatalities by Month")
+
+    # Sum fatalities by Month and Year
+    grouped = df.groupby(['YEAR', 'MONTH'])['NUMBER_OF_PERSONS_KILLED'].sum().reset_index()
+    
+    fig = px.line(
+        grouped, x='MONTH', y='NUMBER_OF_PERSONS_KILLED', color='YEAR',
+        title='2. Fatalities by Month (Seasonal Trend)',
+        markers=True, template='plotly_dark'
+    )
+    fig.update_xaxes(dtick=1, title="Month")
+    fig.update_yaxes(title="Persons Killed")
+    return fig
+
+# ---------------------------------------------------------------------
+# CHART 3: Severity by Weekday & Hour
+# ---------------------------------------------------------------------
+def create_severity_by_hour_weekday(df):
+    if df.empty: return _create_empty_figure("Severity by Weekday & Hour")
+
+    # Group by Weekday and Hour, sum fatalities
+    grouped = df.groupby(['WEEKDAY', 'HOUR'])['NUMBER_OF_PERSONS_KILLED'].sum().reset_index()
+    
+    # Pivot for Heatmap format: Index=Weekday, Columns=Hour, Values=Killed
+    pivot = grouped.pivot(index='WEEKDAY', columns='HOUR', values='NUMBER_OF_PERSONS_KILLED').fillna(0)
+    
+    days_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    pivot = pivot.reindex(days_order)
+
+    fig = px.imshow(
+        pivot,
+        labels=dict(x="Hour", y="Weekday", color="Fatalities"),
+        x=pivot.columns,
+        y=pivot.index,
+        title="3. Severity (Fatalities) Heatmap by Time",
+        template='plotly_dark'
+    )
+    fig.update_xaxes(dtick=1)
+    return fig
 
 
 # ---------------------------------------------------------------------
