@@ -1,5 +1,4 @@
 from dash import Input, Output, State
-# Import the figure factory functions we are about to write
 from utils.figure_factory import (
     create_hourly_borough_trend,
     create_monthly_fatality_trend,
@@ -16,7 +15,9 @@ from utils.query_parser import parse_search_query
 
 def register_update_callbacks(app, df):
 
-
+    # ---------------------------------------------------------
+    # Search Bar Callback
+    # ---------------------------------------------------------
     @app.callback(
         [Output("borough-dropdown", "value"),
          Output("year-dropdown", "value"),
@@ -31,30 +32,28 @@ def register_update_callbacks(app, df):
     def apply_search(n_clicks, query):
         if not query:
             return None, None, None, None, None, None
+        
         parsed = parse_search_query(query)
-        # Returns the values to auto-populate the dropdowns
-        return (parsed.get("borough"), parsed.get("year"), 
-                parsed.get("month"), parsed.get("weekday"), 
-                parsed.get("hour"), parsed.get("metric"))
+        
+        # Helper to wrap single values in lists (since dropdowns are multi=True)
+        def wrap(val):
+            return [val] if val and not isinstance(val, list) else val
+            
+        return (
+            wrap(parsed.get("borough")), 
+            wrap(parsed.get("year")), 
+            wrap(parsed.get("month")), 
+            wrap(parsed.get("weekday")), 
+            wrap(parsed.get("hour")), 
+            parsed.get("metric") # Metric is single select, so no wrap needed
+        )
 
-
+    # ---------------------------------------------------------
+    # Main Update Callback
+    # ---------------------------------------------------------
     @app.callback(
-        # LIST ALL 10 OUTPUTS HERE
-        [Output("chart-1", "figure"),
-         Output("chart-2", "figure"),
-         Output("chart-3", "figure"),
-         Output("chart-4", "figure"),
-         Output("chart-5", "figure"),
-         Output("chart-6", "figure"),
-         Output("chart-7", "figure"),
-         Output("chart-8", "figure"),
-         Output("chart-9", "figure"),
-         Output("chart-10", "figure")],
-        
-        # Trigger: The "Generate Report" button
+        [Output(f"chart-{i}", "figure") for i in range(1, 11)],
         Input("generate-report-btn", "n_clicks"),
-        
-        # State: The values of all filters
         [State("borough-dropdown", "value"),
          State("year-dropdown", "value"),
          State("month-dropdown", "value"),
@@ -62,32 +61,51 @@ def register_update_callbacks(app, df):
          State("hour-dropdown", "value")]
     )
     def update_all_charts(n_clicks, borough, year, month, weekday, hour):
-        # 1. Filter the DataFrame (Your existing logic)
         filtered = df.copy()
         
-        if borough:
-            filtered = filtered[filtered["BOROUGH"] == borough]
-        if year:
-            filtered = filtered[filtered["YEAR"] == year]
-        if month:
-            filtered = filtered[filtered["MONTH"] == month]
-        if weekday:
-            filtered = filtered[filtered["WEEKDAY"] == weekday]
-        if hour is not None:
-            filtered = filtered[filtered["HOUR"] == hour]
-
-        # 2. Generate the 10 Figures using the Factory
+        # --- FIXED FILTERING LOGIC ---
+        # Checks if value is a list (Multi-select) or single value
         
-        fig1 = create_hourly_borough_trend(filtered)
-        fig2 = create_monthly_fatality_trend(filtered)
-        fig3 = create_severity_by_hour_weekday(filtered)
-        fig4 = create_pedestrian_injury_heatmap(filtered)
-        fig5 = create_cyclist_fatality_trend(filtered)
-        fig6 = create_motorist_fatality_trend(filtered)
-        fig7 = create_multi_fatality_boroughs(filtered)
-        fig8 = create_severe_pedestrian_distribution(filtered)
-        fig9 = create_fatality_injury_correlation(filtered)
-        fig10 = create_long_term_trends(filtered)
+        if borough:
+            if isinstance(borough, list):
+                filtered = filtered[filtered["BOROUGH"].isin(borough)]
+            else:
+                filtered = filtered[filtered["BOROUGH"] == borough]
+                
+        if year:
+            if isinstance(year, list):
+                filtered = filtered[filtered["YEAR"].isin(year)]
+            else:
+                filtered = filtered[filtered["YEAR"] == year]
+                
+        if month:
+            if isinstance(month, list):
+                filtered = filtered[filtered["MONTH"].isin(month)]
+            else:
+                filtered = filtered[filtered["MONTH"] == month]
+                
+        if weekday:
+            if isinstance(weekday, list):
+                filtered = filtered[filtered["WEEKDAY"].isin(weekday)]
+            else:
+                filtered = filtered[filtered["WEEKDAY"] == weekday]
+                
+        if hour is not None: # Hour can be 0, so check for None explicitly
+            if isinstance(hour, list):
+                filtered = filtered[filtered["HOUR"].isin(hour)]
+            else:
+                filtered = filtered[filtered["HOUR"] == hour]
 
-        # 3. Return them in the exact order of the Outputs
-        return fig1, fig2, fig3, fig4, fig5, fig6, fig7, fig8, fig9, fig10
+        # --- GENERATE CHARTS ---
+        return (
+            create_hourly_borough_trend(filtered),
+            create_monthly_fatality_trend(filtered),
+            create_severity_by_hour_weekday(filtered),
+            create_pedestrian_injury_heatmap(filtered),
+            create_cyclist_fatality_trend(filtered),
+            create_motorist_fatality_trend(filtered),
+            create_multi_fatality_boroughs(filtered),
+            create_severe_pedestrian_distribution(filtered),
+            create_fatality_injury_correlation(filtered),
+            create_long_term_trends(filtered)
+        )

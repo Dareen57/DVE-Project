@@ -8,7 +8,8 @@ def generate_filter_dropdowns(df):
             id="borough-dropdown",
             options=[{"label": b, "value": b} for b in sorted(df["BOROUGH"].dropna().unique())],
             placeholder="Select Borough",
-            clearable=True
+            clearable=True,
+            multi=True
         ),
 
         # Year filter
@@ -17,7 +18,9 @@ def generate_filter_dropdowns(df):
             id="year-dropdown",
             options=[{"label": int(y), "value": int(y)} for y in sorted(df["YEAR"].dropna().unique())],
             placeholder="Select Year",
-            clearable=True
+            clearable=True,
+            multi=True
+
         ),
 
         # Month filter
@@ -26,7 +29,8 @@ def generate_filter_dropdowns(df):
             id="month-dropdown",
             options=[{"label": int(m), "value": int(m)} for m in sorted(df["MONTH"].dropna().unique())],
             placeholder="Select Month",
-            clearable=True
+            clearable=True,
+            multi=True
         ),
 
         # Weekday filter
@@ -35,7 +39,8 @@ def generate_filter_dropdowns(df):
             id="weekday-dropdown",
             options=[{"label": w, "value": w} for w in sorted(df["WEEKDAY"].dropna().unique())],
             placeholder="Select Weekday",
-            clearable=True
+            clearable=True,
+            multi=True
         ),
 
         # Hour filter
@@ -44,7 +49,8 @@ def generate_filter_dropdowns(df):
             id="hour-dropdown",
             options=[{"label": h, "value": h} for h in sorted(df["HOUR"].dropna().unique())],
             placeholder="Select Hour",
-            clearable=True
+            clearable=True,
+            multi=True
         ),
 
         # Column selector for injury/fatality
@@ -58,7 +64,7 @@ def generate_filter_dropdowns(df):
                 {"label": "Motorists Killed", "value": "NUMBER_OF_MOTORIST_KILLED"}
             ],
             placeholder="Select Metric",
-            clearable=False
+            clearable=False,
         ),
 
         # Generate Report Button
