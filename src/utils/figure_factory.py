@@ -42,49 +42,7 @@ def create_hourly_borough_trend(df):
     fig.update_xaxes(dtick=4) # Show every 4th hour to save space
     return fig
 
-# ---------------------------------------------------------------------
-# CHART 2: Monthly Fatalities Trend
-# ---------------------------------------------------------------------
-def create_monthly_fatality_trend(df):
-    if df.empty: return _create_empty_figure("Fatalities by Month")
 
-    # Sum fatalities by Month and Year
-    grouped = df.groupby(['YEAR', 'MONTH'])['NUMBER_OF_PERSONS_KILLED'].sum().reset_index()
-    
-    fig = px.line(
-        grouped, x='MONTH', y='NUMBER_OF_PERSONS_KILLED', color='YEAR',
-        title='2. Fatalities by Month (Seasonal Trend)',
-        markers=True, template='plotly_dark'
-    )
-    fig.update_xaxes(dtick=1, title="Month")
-    fig.update_yaxes(title="Persons Killed")
-    return fig
-
-# ---------------------------------------------------------------------
-# CHART 3: Severity by Weekday & Hour
-# ---------------------------------------------------------------------
-def create_severity_by_hour_weekday(df):
-    if df.empty: return _create_empty_figure("Severity by Weekday & Hour")
-
-    # Group by Weekday and Hour, sum fatalities
-    grouped = df.groupby(['WEEKDAY', 'HOUR'])['NUMBER_OF_PERSONS_KILLED'].sum().reset_index()
-    
-    # Pivot for Heatmap format: Index=Weekday, Columns=Hour, Values=Killed
-    pivot = grouped.pivot(index='WEEKDAY', columns='HOUR', values='NUMBER_OF_PERSONS_KILLED').fillna(0)
-    
-    days_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-    pivot = pivot.reindex(days_order)
-
-    fig = px.imshow(
-        pivot,
-        labels=dict(x="Hour", y="Weekday", color="Fatalities"),
-        x=pivot.columns,
-        y=pivot.index,
-        title="3. Severity (Fatalities) Heatmap by Time",
-        template='plotly_dark'
-    )
-    fig.update_xaxes(dtick=1)
-    return fig
 
 # ---------------------------------------------------------------------
 # CHART 4: Pedestrian Injuries (Borough vs Hour)
@@ -158,45 +116,7 @@ def create_multi_fatality_boroughs(df):
     )
     return fig
 
-# ---------------------------------------------------------------------
-# CHART 8: Severe Pedestrian Injuries Distribution
-# ---------------------------------------------------------------------
-def create_severe_pedestrian_distribution(df):
-    # Filter for pedestrian injury incidents
-    ped_df = df[df['NUMBER_OF_PEDESTRIANS_INJURED'] > 0]
-    if ped_df.empty: return _create_empty_figure("No Pedestrian Injuries")
 
-    fig = px.histogram(
-        ped_df, x='HOUR', y='NUMBER_OF_PEDESTRIANS_INJURED', color='BOROUGH',
-        title='8. Pedestrian Injuries Distribution by Hour',
-        nbins=24,
-        template='plotly_dark',
-        barmode='stack'
-    )
-    fig.update_xaxes(dtick=1)
-    return fig
-
-# ---------------------------------------------------------------------
-# CHART 9: Fatality vs Injury Correlation
-# ---------------------------------------------------------------------
-def create_fatality_injury_correlation(df):
-    if df.empty: return _create_empty_figure("Fatality vs Injury")
-
-    # Aggregate by Hour to reduce point crowding
-    grouped = df.groupby('HOUR').agg({
-        'NUMBER_OF_PERSONS_KILLED': 'sum',
-        'NUMBER_OF_PERSONS_INJURED': 'sum'
-    }).reset_index()
-
-    fig = px.scatter(
-        grouped, x='NUMBER_OF_PERSONS_INJURED', y='NUMBER_OF_PERSONS_KILLED',
-        size='NUMBER_OF_PERSONS_INJURED',  # Bubble size
-        hover_data=['HOUR'],
-        title='9. Correlation: High Injury Hours vs Fatalities',
-        labels={'NUMBER_OF_PERSONS_INJURED': 'Total Injuries (per Hour)', 'NUMBER_OF_PERSONS_KILLED': 'Total Fatalities'},
-        template='plotly_dark'
-    )
-    return fig
 
 # ---------------------------------------------------------------------
 # CHART 10: Long Term Trends (Area Chart)
