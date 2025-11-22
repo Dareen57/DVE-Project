@@ -1,19 +1,8 @@
 import pandas as pd
 
 def load_cleaned_data(file_path: str) -> pd.DataFrame:
-    usecols = [
-        "BOROUGH",
-        "YEAR",
-        "MONTH",
-        "WEEKDAY",
-        "HOUR",
-        "NUMBER_OF_PERSONS_KILLED",
-        "NUMBER_OF_PEDESTRIANS_INJURED",
-        "NUMBER_OF_CYCLIST_KILLED",
-        "NUMBER_OF_MOTORIST_KILLED"
-    ]
 
-    df = pd.read_csv(file_path, usecols=usecols)
+    df = pd.read_csv(file_path, low_memory=False)
 
     # Fill missing boroughs
     # df["BOROUGH"] = df["BOROUGH"].fillna("Unknown").str.title().str.strip()

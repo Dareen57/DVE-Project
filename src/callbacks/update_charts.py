@@ -1,25 +1,75 @@
 from dash import Input, Output, State
-import plotly.express as px
+# Import the figure factory functions we are about to write
+from utils.figure_factory import (
+    create_hourly_borough_trend,
+    create_monthly_fatality_trend,
+    create_severity_by_hour_weekday,
+    create_pedestrian_injury_heatmap,
+    create_cyclist_fatality_trend,
+    create_motorist_fatality_trend,
+    create_multi_fatality_boroughs,
+    create_severe_pedestrian_distribution,
+    create_fatality_injury_correlation,
+    create_long_term_trends
+)
 from utils.query_parser import parse_search_query
 
 def register_update_callbacks(app, df):
 
-    # Generate button callback
+    # ---------------------------------------------------------
+    # 1. Search Bar Callback (Keeps your existing logic)
+    # ---------------------------------------------------------
     @app.callback(
-        Output("main-chart", "figure"),
-        Input("generate-report-btn", "n_clicks"),
-        [
-            State("borough-dropdown", "value"),
-            State("year-dropdown", "value"),
-            State("month-dropdown", "value"),
-            State("weekday-dropdown", "value"),
-            State("hour-dropdown", "value"),
-            State("metric-dropdown", "value")
-        ],
+        [Output("borough-dropdown", "value"),
+         Output("year-dropdown", "value"),
+         Output("month-dropdown", "value"),
+         Output("weekday-dropdown", "value"),
+         Output("hour-dropdown", "value"),
+         Output("metric-dropdown", "value")],
+        Input("search-btn", "n_clicks"),
+        State("search-input", "value"),
         prevent_initial_call=True
     )
-    def update_main_chart(n_clicks, borough, year, month, weekday, hour, metric):
+    def apply_search(n_clicks, query):
+        if not query:
+            return None, None, None, None, None, None
+        parsed = parse_search_query(query)
+        # Returns the values to auto-populate the dropdowns
+        return (parsed.get("borough"), parsed.get("year"), 
+                parsed.get("month"), parsed.get("weekday"), 
+                parsed.get("hour"), parsed.get("metric"))
+
+    # ---------------------------------------------------------
+    # 2. The BIG Update Callback (Updates 10 Charts)
+    # ---------------------------------------------------------
+    @app.callback(
+        # LIST ALL 10 OUTPUTS HERE
+        [Output("chart-1", "figure"),
+         Output("chart-2", "figure"),
+         Output("chart-3", "figure"),
+         Output("chart-4", "figure"),
+         Output("chart-5", "figure"),
+         Output("chart-6", "figure"),
+         Output("chart-7", "figure"),
+         Output("chart-8", "figure"),
+         Output("chart-9", "figure"),
+         Output("chart-10", "figure")],
+        
+        # Trigger: The "Generate Report" button
+        Input("generate-report-btn", "n_clicks"),
+        
+        # State: The values of all filters
+        [State("borough-dropdown", "value"),
+         State("year-dropdown", "value"),
+         State("month-dropdown", "value"),
+         State("weekday-dropdown", "value"),
+         State("hour-dropdown", "value")]
+         # Note: I removed 'metric-dropdown' unless you specifically need it for a specific chart
+    )
+    def update_all_charts(n_clicks, borough, year, month, weekday, hour):
+        # 1. Filter the DataFrame (Your existing logic)
         filtered = df.copy()
+        
         if borough:
             filtered = filtered[filtered["BOROUGH"] == borough]
         if year:
@@ -31,31 +81,19 @@ def register_update_callbacks(app, df):
         if hour is not None:
             filtered = filtered[filtered["HOUR"] == hour]
 
+        # 2. Generate the 10 Figures using the Factory
+        # (If the filtered data is empty, these functions should handle it gracefully)
+        
+        fig1 = create_hourly_borough_trend(filtered)
+        fig2 = create_monthly_fatality_trend(filtered)
+        fig3 = create_severity_by_hour_weekday(filtered)
+        fig4 = create_pedestrian_injury_heatmap(filtered)
+        fig5 = create_cyclist_fatality_trend(filtered)
+        fig6 = create_motorist_fatality_trend(filtered)
+        fig7 = create_multi_fatality_boroughs(filtered)
+        fig8 = create_severe_pedestrian_distribution(filtered)
+        fig9 = create_fatality_injury_correlation(filtered)
+        fig10 = create_long_term_trends(filtered)
 
-        # Create simple chart
-        fig = px.histogram(
-            filtered,
-            x="YEAR",
-            y=metric if metric else None,
-            title=f"{metric.replace('_', ' ').title() if metric else 'Crashes'} per Year (Filtered)",
-            labels={metric: metric.replace('_', ' ').title() if metric else "Count", "YEAR": "Year"}
-        )
-        return fig
-
-    # Search input callback to set dropdowns
-    @app.callback(
-        Output("borough-dropdown", "value"),
-        Output("year-dropdown", "value"),
-        Output("month-dropdown", "value"),
-        Output("weekday-dropdown", "value"),
-        Output("hour-dropdown", "value"),
-        Output("metric-dropdown", "value"),
-        Input("search-btn", "n_clicks"),
-        State("search-input", "value"),
-        prevent_initial_call=True
-    )
-    def apply_search(n_clicks, query):
-        if not query:
-            return None, None, None, None, None, None
-        parsed = parse_search_query(query)
-        return parsed["borough"], parsed["year"], parsed["month"], parsed["weekday"], parsed["hour"], parsed["metric"]
+        # 3. Return them in the exact order of the Outputs
+        return fig1, fig2, fig3, fig4, fig5, fig6, fig7, fig8, fig9, fig10

@@ -1,31 +1,20 @@
-from dash import Dash, html, dcc
+# app.py
+from dash import Dash
 from utils.data_loader import load_cleaned_data
-from components.filters import generate_filter_dropdowns
-from components.search_bar import generate_search_bar
+from layouts.dashboard import create_dashboard_layout  # <--- Import the layout
 from callbacks.update_charts import register_update_callbacks
 
-# Load cleaned dataset
+# Load Data
 df = load_cleaned_data("data/NYC_crashes_persons_cleaned.csv")
 
-# Initialize Dash app
-app = Dash(__name__)
+# Init App
+app = Dash(__name__, external_stylesheets=['/assets/styles.css'])
 app.title = "NYC Crash Dashboard"
 
-# Layout
-app.layout = html.Div([
-    html.H1("NYC Traffic Collision Analysis"),
+# Assign Layout
+app.layout = create_dashboard_layout(df)  # <--- Use the function
 
-    # Search bar
-    generate_search_bar(),
-
-    # Filters + Metric dropdown + Generate button
-    generate_filter_dropdowns(df),
-
-    # Main Chart
-    dcc.Graph(id="main-chart"),
-])
-
-# Register callbacks
+# Register Callbacks
 register_update_callbacks(app, df)
 
 if __name__ == "__main__":
