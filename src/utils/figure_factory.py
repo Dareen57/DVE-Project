@@ -24,14 +24,22 @@ def _create_empty_figure(title, message="No Data Available"):
 def create_hourly_borough_trend(df):
     if df.empty: return _create_empty_figure("Collision Frequency by Hour & Borough")
     
-    grouped = df.groupby(['BOROUGH', 'HOUR'])['COLLISION_ID'].count().reset_index(name='Collision Count')
+    # Group by Weekday too!
+    grouped = df.groupby(['WEEKDAY', 'BOROUGH', 'HOUR'])['COLLISION_ID'].count().reset_index(name='Collision Count')
     
+    # Use facet_col='WEEKDAY' to show side-by-side charts
     fig = px.line(
-        grouped, x='HOUR', y='Collision Count', color='BOROUGH',
-        title='1. Collision Frequency by Hour & Borough',
-        markers=True, template='plotly_dark'
+        grouped, 
+        x='HOUR', 
+        y='Collision Count', 
+        color='BOROUGH',
+        facet_col='WEEKDAY', 
+        facet_col_wrap=4, # Wraps to new row after 4 days
+        title='1. Hourly Collision Trends by Borough (Split by Weekday)',
+        markers=False, # Turn off markers to reduce clutter
+        template='plotly_dark'
     )
-    fig.update_xaxes(dtick=1)
+    fig.update_xaxes(dtick=4) # Show every 4th hour to save space
     return fig
 
 # ---------------------------------------------------------------------
