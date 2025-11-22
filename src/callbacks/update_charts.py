@@ -16,9 +16,7 @@ from utils.query_parser import parse_search_query
 
 def register_update_callbacks(app, df):
 
-    # ---------------------------------------------------------
-    # 1. Search Bar Callback (Keeps your existing logic)
-    # ---------------------------------------------------------
+
     @app.callback(
         [Output("borough-dropdown", "value"),
          Output("year-dropdown", "value"),
@@ -39,9 +37,7 @@ def register_update_callbacks(app, df):
                 parsed.get("month"), parsed.get("weekday"), 
                 parsed.get("hour"), parsed.get("metric"))
 
-    # ---------------------------------------------------------
-    # 2. The BIG Update Callback (Updates 10 Charts)
-    # ---------------------------------------------------------
+
     @app.callback(
         # LIST ALL 10 OUTPUTS HERE
         [Output("chart-1", "figure"),
@@ -64,7 +60,6 @@ def register_update_callbacks(app, df):
          State("month-dropdown", "value"),
          State("weekday-dropdown", "value"),
          State("hour-dropdown", "value")]
-         # Note: I removed 'metric-dropdown' unless you specifically need it for a specific chart
     )
     def update_all_charts(n_clicks, borough, year, month, weekday, hour):
         # 1. Filter the DataFrame (Your existing logic)
@@ -82,7 +77,6 @@ def register_update_callbacks(app, df):
             filtered = filtered[filtered["HOUR"] == hour]
 
         # 2. Generate the 10 Figures using the Factory
-        # (If the filtered data is empty, these functions should handle it gracefully)
         
         fig1 = create_hourly_borough_trend(filtered)
         fig2 = create_monthly_fatality_trend(filtered)

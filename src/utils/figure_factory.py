@@ -64,7 +64,6 @@ def create_severity_by_hour_weekday(df):
     # Pivot for Heatmap format: Index=Weekday, Columns=Hour, Values=Killed
     pivot = grouped.pivot(index='WEEKDAY', columns='HOUR', values='NUMBER_OF_PERSONS_KILLED').fillna(0)
     
-    # Ensure all weekdays are present for correct sorting (optional but good)
     days_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     pivot = pivot.reindex(days_order)
 
