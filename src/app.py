@@ -1,7 +1,7 @@
 from dash import Dash, html, dcc
 from utils.data_loader import load_cleaned_data
 from components.filters import generate_filter_dropdowns
-from components.search_bar import search_bar
+from components.search_bar import generate_search_bar
 from callbacks.update_charts import register_update_callbacks
 
 # Load cleaned dataset
@@ -15,14 +15,11 @@ app.title = "NYC Crash Dashboard"
 app.layout = html.Div([
     html.H1("NYC Traffic Collision Analysis"),
 
-    # Filters
+    # Search bar
+    generate_search_bar(),
+
+    # Filters + Metric dropdown + Generate button
     generate_filter_dropdowns(df),
-
-    # # Generate Report button
-    # html.Button("Generate Report", id="generate-report-btn"),
-
-    # Search Bar
-    search_bar(),
 
     # Main Chart
     dcc.Graph(id="main-chart"),

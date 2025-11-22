@@ -1,63 +1,61 @@
 from dash import Input, Output, State
 import plotly.express as px
-
+from utils.query_parser import parse_search_query
 
 def register_update_callbacks(app, df):
 
-
+    # Generate button callback
     @app.callback(
         Output("main-chart", "figure"),
-
-        # ONLY the button is Input (trigger)
         Input("generate-report-btn", "n_clicks"),
-
-        # Dropdowns are State (read-only, not triggers)
         [
             State("borough-dropdown", "value"),
             State("year-dropdown", "value"),
-            State("vehicle-dropdown", "value"),
-            State("factor-dropdown", "value"),
-            State("injury-dropdown", "value"),
+            State("month-dropdown", "value"),
+            State("weekday-dropdown", "value"),
+            State("hour-dropdown", "value"),
+            State("metric-dropdown", "value")
         ],
         prevent_initial_call=True
     )
-    def update_main_chart(n_clicks, borough, year, vehicle, factor, injury):
-
-
+    def update_main_chart(n_clicks, borough, year, month, weekday, hour, metric):
         filtered = df.copy()
-
-
-        # Apply dropdown filters
         if borough:
             filtered = filtered[filtered["BOROUGH"] == borough]
-
-
         if year:
-            filtered = filtered[filtered["CRASH_YEAR"] == year]
-
-
-        if vehicle:
-            filtered = filtered[filtered["VEHICLE_TYPE"].str.contains(vehicle, na=False)]
-
-
-        if factor:
-            filtered = filtered[filtered["CONTRIBUTING_FACTOR"].str.contains(factor, na=False)]
-
-
-        if injury == "Injured":
-            filtered = filtered[filtered["NUMBER OF PERSONS INJURED"] > 0]
-
-
-        if injury == "Killed":
-            filtered = filtered[filtered["NUMBER OF PERSONS KILLED"] > 0]
+            filtered = filtered[filtered["YEAR"] == year]
+        if month:
+            filtered = filtered[filtered["MONTH"] == month]
+        if weekday:
+            filtered = filtered[filtered["WEEKDAY"] == weekday]
+        if hour is not None:
+            filtered = filtered[filtered["HOUR"] == hour]
 
 
         # Create simple chart
         fig = px.histogram(
             filtered,
-            x="CRASH_YEAR",
-            title="Crashes per Year (Filtered)"
+            x="YEAR",
+            y=metric if metric else None,
+            title=f"{metric.replace('_', ' ').title() if metric else 'Crashes'} per Year (Filtered)",
+            labels={metric: metric.replace('_', ' ').title() if metric else "Count", "YEAR": "Year"}
         )
-
-
         return fig
+
+    # Search input callback to set dropdowns
+    @app.callback(
+        Output("borough-dropdown", "value"),
+        Output("year-dropdown", "value"),
+        Output("month-dropdown", "value"),
+        Output("weekday-dropdown", "value"),
+        Output("hour-dropdown", "value"),
+        Output("metric-dropdown", "value"),
+        Input("search-btn", "n_clicks"),
+        State("search-input", "value"),
+        prevent_initial_call=True
+    )
+    def apply_search(n_clicks, query):
+        if not query:
+            return None, None, None, None, None, None
+        parsed = parse_search_query(query)
+        return parsed["borough"], parsed["year"], parsed["month"], parsed["weekday"], parsed["hour"], parsed["metric"]

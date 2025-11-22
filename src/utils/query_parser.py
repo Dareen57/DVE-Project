@@ -1,56 +1,60 @@
-# utils/query_parser.py
-
-import re
-
-BOROUGHS = ["MANHATTAN", "BROOKLYN", "QUEENS", "BRONX", "STATEN ISLAND"]
-
-INJURY_KEYWORDS = {
-    "pedestrian": "PEDESTRIAN",     # map to your actual column values
-    "cyclist": "BICYCLE",
-    "bicycle": "BICYCLE",
-    "motorist": "MOTORIST",
-}
-
-VEHICLE_KEYWORDS = {
-    "suv": "SPORT UTILITY / STATION WAGON",
-    "truck": "TRUCK",
-    "taxi": "TAXI",
-    "bus": "BUS",
-}
-
-def parse_query_to_filters(query: str) -> dict:
+def parse_search_query(query: str):
     """
-    Turn a free-text query into filter values that match your dropdowns.
+    Example query: 'Brooklyn 2022 Monday 5 killed'
+    Returns a dictionary to map to dropdown values
     """
-    if not query:
-        return {}
+    query = query.lower()
+    result = {
+        "borough": None,
+        "year": None,
+        "month": None,
+        "weekday": None,
+        "hour": None,
+        "metric": None
+    }
 
-    q = query.lower()
-    filters = {}
+    # Simple matching rules
+    boroughs = ["manhattan", "brooklyn", "queens", "bronx", "staten island"]
+    weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+    metrics = {
+        "persons killed": "NUMBER_OF_PERSONS_KILLED",
+        "pedestrians injured": "NUMBER_OF_PEDESTRIANS_INJURED",
+        "cyclists killed": "NUMBER_OF_CYCLIST_KILLED",
+        "motorists killed": "NUMBER_OF_MOTORIST_KILLED",
+    }
 
-    # Borough detection
-    for b in BOROUGHS:
-        if b.lower() in q:
-            filters["borough"] = b
+    # Extract borough
+    for b in boroughs:
+        if b in query:
+            result["borough"] = b.title()
             break
 
-    # Year (any 4-digit from 2012–2025)
-    years = re.findall(r"\b(201[2-9]|202[0-5])\b", q)
-    if years:
-        filters["year"] = int(years[0])
-
-    # Injury type / person type from keywords
-    for kw, val in INJURY_KEYWORDS.items():
-        if kw in q:
-            filters["injury_type"] = val
+    # Extract weekday
+    for w in weekdays:
+        if w in query:
+            result["weekday"] = w.title()
             break
 
-    # Vehicle type from keywords
-    for kw, val in VEHICLE_KEYWORDS.items():
-        if kw in q:
-            filters["vehicle_type"] = val
+    # Extract year
+    import re
+    year_match = re.search(r"\b(20\d{2})\b", query)
+    if year_match:
+        result["year"] = int(year_match.group(1))
+
+    # Extract hour (0-23)
+    hour_match = re.search(r"\b([0-9]|1[0-9]|2[0-3])\b", query)
+    if hour_match:
+        result["hour"] = int(hour_match.group(1))
+
+    # Extract metric
+    for key in metrics.keys():
+        if key in query:
+            result["metric"] = metrics[key]
             break
 
-    # You can add contributing factor, severity, etc. with similar mappings
+    # Month (optional) using 1-12
+    month_match = re.search(r"\b(1[0-2]|[1-9])\b", query)
+    if month_match:
+        result["month"] = int(month_match.group(1))
 
-    return filters
+    return result
