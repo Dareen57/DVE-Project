@@ -84,7 +84,7 @@ def create_severity_by_hour_weekday(df):
         template='plotly_dark'
     )
     fig.update_xaxes(dtick=1)
-    return fig
+    return fig
 
 
 # ---------------------------------------------------------------------
@@ -159,7 +159,45 @@ def create_multi_fatality_boroughs(df):
     )
     return fig
 
+# ---------------------------------------------------------------------
+# CHART 8: Severe Pedestrian Injuries Distribution
+# ---------------------------------------------------------------------
+def create_severe_pedestrian_distribution(df):
+    # Filter for pedestrian injury incidents
+    ped_df = df[df['NUMBER_OF_PEDESTRIANS_INJURED'] > 0]
+    if ped_df.empty: return _create_empty_figure("No Pedestrian Injuries")
 
+    fig = px.histogram(
+        ped_df, x='HOUR', y='NUMBER_OF_PEDESTRIANS_INJURED', color='BOROUGH',
+        title='8. Pedestrian Injuries Distribution by Hour',
+        nbins=24,
+        template='plotly_dark',
+        barmode='stack'
+    )
+    fig.update_xaxes(dtick=1)
+    return fig
+
+# ---------------------------------------------------------------------
+# CHART 9: Fatality vs Injury Correlation
+# ---------------------------------------------------------------------
+def create_fatality_injury_correlation(df):
+    if df.empty: return _create_empty_figure("Fatality vs Injury")
+
+    # Aggregate by Hour to reduce point crowding
+    grouped = df.groupby('HOUR').agg({
+        'NUMBER_OF_PERSONS_KILLED': 'sum',
+        'NUMBER_OF_PERSONS_INJURED': 'sum'
+    }).reset_index()
+
+    fig = px.scatter(
+        grouped, x='NUMBER_OF_PERSONS_INJURED', y='NUMBER_OF_PERSONS_KILLED',
+        size='NUMBER_OF_PERSONS_INJURED',  # Bubble size
+        hover_data=['HOUR'],
+        title='9. Correlation: High Injury Hours vs Fatalities',
+        labels={'NUMBER_OF_PERSONS_INJURED': 'Total Injuries (per Hour)', 'NUMBER_OF_PERSONS_KILLED': 'Total Fatalities'},
+        template='plotly_dark'
+    )
+    return fig
 
 # ---------------------------------------------------------------------
 # CHART 10: Long Term Trends (Area Chart)
